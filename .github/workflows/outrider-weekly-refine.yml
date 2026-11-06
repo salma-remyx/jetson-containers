@@ -17,8 +17,8 @@ name: Outrider weekly refine
 # write side needed.
 
 on:
-  schedule:
-    - cron: '0 12 * * 1'   # Mondays 12:00 UTC — after weekend accumulates
+  # schedule:  # PAUSED 2026-11-06 (fleet paused; dispatch via remyxai outrider trigger)
+    # - cron: '0 12 * * 1'   # Mondays 12:00 UTC — after weekend accumulates
   workflow_dispatch:
     inputs:
       lookback-days:
