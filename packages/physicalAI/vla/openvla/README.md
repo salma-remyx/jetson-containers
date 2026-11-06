@@ -73,3 +73,14 @@ jetson-containers build openvla
 ```
 The dependencies from above will be built into the container, and it'll be tested during.  Run it with [`--help`](/jetson_containers/build.py) for build options.
 </details>
+
+## VLA Latency Triage
+
+This package includes a latency triage benchmark ([`triage_benchmark.py`](triage_benchmark.py)) that attributes VLA inference time to CPU launch/dispatch vs GPU kernels (via CUDA events), and reports how stacking optimizations changes each one's benefit across dtype/quantization, attention implementation, and CUDA graphs - adapted from the VLA-Triage measurement methodology of *Where Is VLA Inference Time Spent? Bottlenecks and Optimization Interactions Across GPUs*.  Run it on the device from a repo checkout mounted into the container:
+
+```bash
+jetson-containers run -v $HOME/jetson-containers:/jetson-containers $(autotag openvla) \
+    python3 /jetson-containers/packages/physicalAI/vla/openvla/triage_benchmark.py \
+    --dtypes bfloat16,float16,4bit --attns sdpa,flash_attention_2 --graphs on \
+    --json /data/openvla_triage.json
+```
