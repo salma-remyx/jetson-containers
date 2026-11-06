@@ -9,8 +9,8 @@ name: Outrider daily (branch-mode, drafter)
 # model=glm-5.3
 
 on:
-  schedule:
-    - cron: '0 6 * * *'
+  # schedule:  # PAUSED 2026-11-06 (fleet paused; dispatch via remyxai outrider trigger)
+    # - cron: '0 6 * * *'
   workflow_dispatch: {}
 
 concurrency:
