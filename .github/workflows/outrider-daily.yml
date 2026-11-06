@@ -1,0 +1,58 @@
+name: Outrider daily (branch-mode, drafter)
+
+# Drafter tier of the two-tier setup: high-frequency, cheap-model
+# exploration. Publishes as branch — no PR/Issue, no maintainer signal.
+# Every dispatch accumulates repo intel; outrider-weekly-refine.yml
+# promotes one accumulated branch per week to a ready-for-review PR.
+#
+# Backend for this tier: agent=claude provider=zai
+# model=glm-5.3
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  # Deliberately static, unlike outrider.yml's per-target group:
+  # every drafter run commits to the same accumulated intel branch, so two in
+  # flight would race on the push. One at a time is protective here, and the
+  # drafter is cron/dispatcher-driven rather than fired in batches.
+  group: outrider-drafter
+  cancel-in-progress: false
+
+jobs:
+  scout:
+    runs-on: ubuntu-latest
+    # Derived from agent-timeout below (+ push headroom); see JOB_TIMEOUT_MIN.
+    timeout-minutes: 90
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    env:
+      REMYX_API_KEY: ${{ secrets.REMYX_API_KEY }}
+    steps:
+      - uses: remyxai/outrider@v1
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
+          BACKBOARD_API_KEY: ${{ secrets.BACKBOARD_API_KEY }}
+        with:
+          interest-id: '6f58db4f-715a-4a60-afea-ea1ebf3a64a5'
+          publish: branch
+          # This tier's backend, fixed: the drafter has no dispatch inputs —
+          # it is cron-driven, and the refiner is what varies a run.
+          agent: 'claude'
+          provider: 'zai'
+          model: 'glm-5.3'
+          # Drafter defaults: accumulate intel, skip research (cost is
+          # proportionate weekly, not at daily drafter frequency).
+          maintain-state: 'true'
+          staged-synthesis: 'false'
+          rate-limit-days: '0'
+          # Agent budget; kept under the job wall so the push always lands.
+          agent-timeout: '3600'
